@@ -46,6 +46,35 @@ def shuffle_data(profiling_x,label_y):
     shuffled_y = np.array(shuffled_y)
     return (shuffled_x, shuffled_y)
 
+# Optimized implementation
+# Credit: https://github.com/gabzai/Ranking-Loss-SCA/issues/1 
+def ranking_loss_optimized(score_layer, alpha_value=10):
+    def loss(y_true, y_pred):
+        alpha = K.constant(alpha_value, dtype='float32')
+        
+        y_true = tf.cast(tf.math.argmax(y_true, axis=1), dtype=tf.int32)
+        y_true_int = K.cast(y_true, dtype='int32')
+        batch_s = K.cast(K.shape(y_true_int)[0], dtype='int32')
+
+        # Indexing the training set (range_value = (?,))        
+        range_value = K.arange(0, batch_s, dtype='int32')
+
+        # Get rank and scores associated with the secret key (rank_sk = (?,))
+        # values_topk_logits = shape(?, nb_class) ; indices_topk_logits = shape(?, nb_class)
+        indices = tf.concat([range_value[:, None], y_true_int[:, None]], 1)
+        score_sk = tf.gather_nd(score_layer, indices)
+
+        # Ranking Loss sk*-sk
+        loss_rank_total = score_sk[:, None]- score_layer
+        
+        # Ranking Logistic Loss sum_{k \in K/k*} log2(1 + exp(sk*-sk))
+        logistic_loss = K.log(1 + K.exp(-1 * alpha * (loss_rank_total))) / K.log(2.0)
+        loss_rank = tf.reduce_sum(logistic_loss, axis=1) - K.ones(batch_s, dtype='float32')
+        
+        return tf.reduce_mean(loss_rank)
+
+    return loss
+
 # Naive implementation
 def loss_sca(score_vector, alpha_value=10, nb_class=256):
 
@@ -115,7 +144,7 @@ def cnn_architecture(input_size=1250, learning_rate=0.00001, alpha_value=10, cla
     optimizer = Adam(lr=learning_rate)
 
     if(rkl_loss==True):
-        model.compile(loss=loss_sca(score_layer, nb_class=classes, alpha_value=alpha_value), optimizer=optimizer, metrics=['accuracy'])
+        model.compile(loss=ranking_loss_optimized(score_layer, alpha_value=alpha_value), optimizer=optimizer, metrics=['accuracy'])
     else:
         model.compile(loss="categorical_crossentropy", optimizer=optimizer, metrics=['accuracy'])
         
