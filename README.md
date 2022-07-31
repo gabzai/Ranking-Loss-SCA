@@ -1,7 +1,7 @@
 # Ranking Loss: Maximizing the Success Rate in Deep Learning Side-Channel Analysis
 The current repository is associated with the article "<a href='https://tches.iacr.org/index.php/TCHES/article/view/8726'>Ranking Loss: Maximizing the Success Rate in Deep Learning Side-Channel Analysis</a>" available on <a href='https://tches.iacr.org/index.php/TCHES/index'>IACR Transactions on Cryptographic Hardware and Embedded Systems (TCHES)</a> and the <a href='https://eprint.iacr.org/2020/872'>eprints</a>.
 
-The optimized Ranking Loss has been develop by Pritha Gupta (credit: <a href='https://github.com/gabzai/Ranking-Loss-SCA/issues/1'>issue 1</a>) and validated on Tensorflow 2.0.
+The optimized Ranking Loss has been developed by Pritha Gupta (credit: <a href='https://github.com/gabzai/Ranking-Loss-SCA/issues/1'>issue 1</a>) and validated on Tensorflow 2.0.
 
 Each dataset is composed of the following scripts and repositories:
 - <b>cnn_architecture.py</b>: provides the script in order to train the model introduced in the article,
